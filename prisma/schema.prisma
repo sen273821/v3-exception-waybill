@@ -1,0 +1,193 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  name        String
+  role        String   // reporter, approver_l1, approver_l2, qc_manager, admin
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  tickets        Ticket[]         @relation("ReporterTickets")
+  scanRecords    ScanRecord[]     @relation("OperatorScanRecords")
+  approvalRecords ApprovalRecord[] @relation("ApproverRecords")
+}
+
+model WaybillSnapshot {
+  id                String   @id @default(uuid())
+  externalCode      String
+  storeName         String?
+  recipientName     String?
+  recipientPhone    String?
+  recipientAddress  String?
+  totalAmount       Float?   // 聚合金额，可选
+  skuSummary        String   // JSON 字符串
+  syncStatus        String   @default("fresh")
+  lastSyncAt        DateTime @default(now())
+  syncLogId         String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  tickets     Ticket[]     @relation("SnapshotTickets")
+  scanRecords ScanRecord[] @relation("SnapshotScanRecords")
+
+  @@index([externalCode])
+  @@index([lastSyncAt])
+}
+
+model SyncLog {
+  id            String   @id @default(uuid())
+  requestId     String   @unique
+  apiName       String
+  method        String
+  params        String?
+  statusCode    Int?
+  response      String?
+  durationMs    Int
+  success       Boolean
+  errorMessage  String?
+  createdAt     DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([apiName])
+  @@index([requestId])
+}
+
+model QcRule {
+  id                 String   @id @default(uuid())
+  name               String
+  subType            String
+  conditionType      String
+  threshold          Float?
+  severity           String
+  autoCreateTicket   Boolean  @default(false)
+  autoApprovalLevel  Int?
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  scanRecords ScanRecord[]
+}
+
+model ApprovalRule {
+  id            String   @id @default(uuid())
+  name          String
+  level         Int
+  minAmount     Float
+  maxAmount     Float?
+  exceptionType String
+  timeoutHours  Int
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Ticket {
+  id                String   @id @default(uuid())
+  ticketNo          String   @unique
+  source            String   // scan / manual
+  type              String   // qc / logistics
+  subType           String
+  status            String   @default("pending")
+  externalCode      String
+  waybillSnapshotId String
+  waybillSnapshot   WaybillSnapshot @relation("SnapshotTickets", fields: [waybillSnapshotId], references: [id])
+  amount            Float    @default(0)
+  description       String
+  reporterId        String
+  reporter          User     @relation("ReporterTickets", fields: [reporterId], references: [id])
+  currentAssigneeId String?
+  currentLevel      Int      @default(0)
+  resubmitCount     Int      @default(0)
+  maxResubmitCount  Int      @default(3)
+  executedAction    String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  scanRecords    ScanRecord[]
+  approvals      ApprovalRecord[]
+  payments       PaymentRecord[]
+  inventoryLogs  InventoryLog[]
+
+  @@index([externalCode])
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model ScanRecord {
+  id                String   @id @default(uuid())
+  scanCode          String
+  externalCode      String
+  skuCode           String
+  result            String   // pass / hold / released
+  holdStatus        String?  // locked / released
+  qcRuleId          String?
+  qcRule            QcRule?  @relation(fields: [qcRuleId], references: [id])
+  ticketId          String?
+  ticket            Ticket?  @relation(fields: [ticketId], references: [id])
+  operatorId        String
+  operator          User     @relation("OperatorScanRecords", fields: [operatorId], references: [id])
+  waybillSnapshotId String
+  waybillSnapshot   WaybillSnapshot @relation("SnapshotScanRecords", fields: [waybillSnapshotId], references: [id])
+  releaseReason     String?
+  releasedAt        DateTime?
+  createdAt         DateTime @default(now())
+
+  @@index([externalCode])
+  @@index([skuCode])
+  @@index([result])
+}
+
+model ApprovalRecord {
+  id          String   @id @default(uuid())
+  ticketId    String
+  ticket      Ticket   @relation(fields: [ticketId], references: [id])
+  approverId  String
+  approver    User     @relation("ApproverRecords", fields: [approverId], references: [id])
+  level       Int
+  action      String   // approve / reject / release
+  comment     String
+  createdAt   DateTime @default(now())
+
+  payments      PaymentRecord[]
+  inventoryLogs InventoryLog[]
+
+  @@index([ticketId])
+}
+
+model PaymentRecord {
+  id                 String   @id @default(uuid())
+  ticketId           String
+  ticket             Ticket   @relation(fields: [ticketId], references: [id])
+  approvalRecordId   String
+  approvalRecord     ApprovalRecord @relation(fields: [approvalRecordId], references: [id])
+  amount             Float
+  direction          String   // customer_compensate / supplier_recover
+  status             String   @default("pending")
+  createdAt          DateTime @default(now())
+
+  @@index([ticketId])
+}
+
+model InventoryLog {
+  id                String   @id @default(uuid())
+  ticketId          String
+  ticket            Ticket   @relation(fields: [ticketId], references: [id])
+  approvalRecordId  String
+  approvalRecord    ApprovalRecord @relation(fields: [approvalRecordId], references: [id])
+  skuCode           String
+  changeType        String   // outbound / inbound / scrap / reorder
+  quantity          Int
+  note              String?
+  createdAt         DateTime @default(now())
+
+  @@index([ticketId])
+}

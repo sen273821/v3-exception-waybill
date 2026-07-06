@@ -1,0 +1,515 @@
+@import "tailwindcss";
+
+:root {
+  --primary: #00b9b9;
+  --primary-dark: #009494;
+  --primary-light: #4dcece;
+  --primary-soft: #e6f8f8;
+  --bg: #f3f9fe;
+  --surface: #ffffff;
+  --surface-muted: #f5f7fa;
+  --line: #dcdfe6;
+  --text: #303133;
+  --text-muted: #909399;
+  --danger: #ff0000;
+  --warning: #f5a524;
+  --success: #17c964;
+  --shadow-card: 0px 12px 32px 4px rgba(0, 0, 0, 0.04), 0px 8px 20px rgba(0, 0, 0, 0.08);
+  --shadow-light: 0px 0px 12px rgba(0, 0, 0, 0.12);
+  --radius-card: 4px;
+  --radius-small: 2px;
+  --radius-round: 20px;
+
+  /* 鲸天系统布局变量 */
+  --ztocc-slide-width: 220px;
+  --ztocc-slide-bg-color: #00263C;
+  --ztocc-slide-item-bg-color: #01bebe;
+  --ztocc-slide-text-color: #fff;
+  --ztocc-header-height: 56px;
+  --ztocc-header-bg: linear-gradient(90deg, #01bebe 0%, #004d72 100%);
+  --ztocc-tabs-height: 41px;
+  --ztocc-main-bg: #f3f9fe;
+  --ztocc-border-color: #009EBF;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--ztocc-main-bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "PingFang SC";
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 158, 191, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ========== 鲸天系统布局 ========== */
+
+.ui-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* 侧边栏 - 鲸天系统深色风格 */
+.ui-sidebar {
+  width: var(--ztocc-slide-width);
+  background: var(--ztocc-slide-bg-color);
+  color: var(--ztocc-slide-text-color);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  flex-shrink: 0;
+  flex-direction: column;
+  padding: 0;
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .ui-sidebar {
+    display: flex;
+  }
+}
+
+.ui-sidebar-logo {
+  height: auto;
+  min-height: var(--ztocc-header-height);
+  background: rgba(1, 190, 190, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 16px;
+  gap: 4px;
+}
+
+.ui-sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.ui-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  font-size: 14px;
+  transition: background-color 0.2s, color 0.2s;
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
+}
+
+.ui-sidebar-item:hover {
+  background: rgba(1, 190, 190, 0.15);
+  color: #fff;
+}
+
+.ui-sidebar-item.active {
+  background: linear-gradient(to right, rgba(6, 176, 176, 0.5), transparent);
+  color: #fff;
+  border-left: 3px solid var(--ztocc-slide-item-bg-color);
+}
+
+/* 主内容区 */
+.ui-main {
+  display: flex;
+  min-height: 100vh;
+  flex: 1;
+  flex-direction: column;
+}
+
+/* 顶部导航 - 鲸天系统渐变风格 */
+.ui-topbar {
+  height: var(--ztocc-header-height);
+  background: var(--ztocc-header-bg);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+}
+
+.ui-topbar-title {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.ui-topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+/* 标签页栏 */
+.ui-tabs-bar {
+  height: var(--ztocc-tabs-height);
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 4px;
+}
+
+.ui-tab-item {
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 4px 4px 0 0;
+  transition: color 0.2s, background 0.2s;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.ui-tab-item:hover {
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.ui-tab-item.active {
+  color: var(--primary);
+  border-bottom: 2px solid var(--primary);
+  font-weight: 500;
+}
+
+/* 页面内容区 */
+.ui-page {
+  max-width: 1680px;
+  margin: 0 auto;
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 32px;
+}
+
+/* ========== 卡片样式 ========== */
+
+.ui-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.ui-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding: 16px 20px;
+}
+
+.ui-card-body {
+  padding: 20px;
+}
+
+.ui-title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.ui-subtitle {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* ========== 输入框样式 ========== */
+
+.ui-input,
+.ui-select,
+.ui-textarea {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--radius-card);
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.ui-input:focus,
+.ui-select:focus,
+.ui-textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(0, 185, 185, 0.15);
+}
+
+.ui-textarea {
+  min-height: 108px;
+  resize: vertical;
+}
+
+/* ========== 按钮样式 ========== */
+
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+  border-radius: var(--radius-card);
+  border: 1px solid transparent;
+}
+
+.ui-button-primary {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.ui-button-primary:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+.ui-button-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--line);
+}
+
+.ui-button-secondary:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.ui-button-danger {
+  background: rgba(255, 0, 0, 0.08);
+  color: var(--danger);
+  border-color: rgba(255, 0, 0, 0.2);
+}
+
+.ui-button-danger:hover {
+  background: rgba(255, 0, 0, 0.12);
+}
+
+.ui-button-ghost {
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.ui-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* ========== 表格样式 - 鲸天系统风格 ========== */
+
+.ui-table-wrap {
+  position: relative;
+  overflow: auto;
+  max-height: min(68vh, 820px);
+  /* 平滑滚动 */
+  scroll-behavior: smooth;
+  /* 自定义滚动条 - 更明显的横向滚动条 */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 158, 191, 0.4) transparent;
+}
+
+/* 横向滚动提示阴影 */
+.ui-table-wrap::before,
+.ui-table-wrap::after {
+  content: '';
+  position: sticky;
+  top: 0;
+  bottom: 0;
+  width: 24px;
+  z-index: 25;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.ui-table-wrap::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(243, 249, 254, 0.8), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.ui-table-wrap.show-right-shadow::after {
+  opacity: 1;
+}
+
+.ui-table {
+  min-width: 100%;
+  border-spacing: 0;
+  font-size: 14px;
+}
+
+.ui-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--line);
+  padding: 12px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  background: #f5f7fa;
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.ui-table tbody tr:hover {
+  background: #e6f9f9;
+}
+
+.ui-table tbody tr.selected {
+  background: #ccf2f2;
+}
+
+.ui-table tbody td {
+  border-bottom: 1px solid #ebeef5;
+  padding: 10px 12px;
+  vertical-align: top;
+}
+
+/* ========== 工具类 ========== */
+
+.ui-grid-label {
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ui-loading-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: float-pulse 1s infinite ease-in-out;
+}
+
+.ui-loading-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.ui-loading-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+/* ========== Toast ========== */
+
+.toast-stack {
+  pointer-events: none;
+  position: fixed;
+  right: 16px;
+  top: 16px;
+  z-index: 50;
+  display: flex;
+  width: min(360px, calc(100vw - 32px));
+  flex-direction: column;
+  gap: 12px;
+}
+
+.toast-card {
+  pointer-events: auto;
+  border-radius: var(--radius-card);
+  border: 1px solid;
+  padding: 12px 16px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  animation: toast-in 0.22s ease-out;
+}
+
+.toast-info {
+  border-color: #67e8f9;
+  background: #fff;
+}
+
+.toast-success {
+  border-color: #6ee7b7;
+  background: #ecfdf5;
+}
+
+.toast-error {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+/* ========== 动画 ========== */
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes float-pulse {
+  0%, 100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
