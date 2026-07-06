@@ -10,7 +10,7 @@ const STATUS_MAP: Record<number, string> = {
 }
 
 export async function submitApproval(input: ApprovalInput) {
-  return db.$transaction(async (tx) => {
+  const result = await db.$transaction(async (tx) => {
     const ticket = await tx.ticket.findUnique({ where: { id: input.ticketId } })
     if (!ticket) throw new Error('工单不存在')
 
@@ -65,19 +65,20 @@ export async function submitApproval(input: ApprovalInput) {
         })
       }
     } else if (input.action === 'approve') {
+      // 查询当前层级对应的审批规则（不限制 maxAmount，用于判断是否需要升级）
       const rule = await tx.approvalRule.findFirst({
         where: {
           level: ticket.currentLevel + 1,
           exceptionType: ticket.type,
           isActive: true,
           minAmount: { lte: ticket.amount },
-          OR: [{ maxAmount: null }, { maxAmount: { gte: ticket.amount } }],
         },
+        orderBy: { level: 'asc' },
       })
 
       if (rule && rule.level === 1) {
         // 金额超阈值需要二级审批
-        if (ticket.amount > (rule.maxAmount ?? Number.MAX_SAFE_INTEGER)) {
+        if (rule.maxAmount != null && ticket.amount > rule.maxAmount) {
           nextStatus = 'l2_approval'
           nextLevel = 2
         } else {
@@ -85,6 +86,10 @@ export async function submitApproval(input: ApprovalInput) {
           nextLevel = 1
           executedAction = await executeAction(tx, ticket, record.id)
         }
+      } else if (rule && rule.level === 2) {
+        nextStatus = 'executing'
+        nextLevel = 2
+        executedAction = await executeAction(tx, ticket, record.id)
       } else {
         nextStatus = 'executing'
         nextLevel = ticket.currentLevel + 1
@@ -116,17 +121,19 @@ export async function submitApproval(input: ApprovalInput) {
       throw new Error('该工单已被他人处理，请刷新后重试')
     }
 
-    // 如果工单完成，回写 V2 异常标记为 false
-    if (nextStatus === 'completed' || nextStatus === 'closed') {
-      try {
-        await v2Client.markException(ticket.externalCode, false)
-      } catch (err) {
-        console.warn('回写 V2 异常标记失败', err)
-      }
-    }
-
-    return { record, nextStatus, executedAction }
+    return { record, nextStatus, executedAction, externalCode: ticket.externalCode }
   })
+
+  // 如果工单完成，回写 V2 异常标记为 false（放在事务外，避免网络调用阻塞 DB 事务）
+  if (result.nextStatus === 'completed' || result.nextStatus === 'closed') {
+    try {
+      await v2Client.markException(result.externalCode, false)
+    } catch (err) {
+      console.warn('回写 V2 异常标记失败', err)
+    }
+  }
+
+  return result
 }
 
 async function executeAction(tx: any, ticket: any, approvalRecordId: string): Promise<string> {

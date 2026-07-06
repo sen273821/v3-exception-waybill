@@ -1,4 +1,6 @@
-import { db } from '../src/lib/db'
+import { PrismaClient } from '@prisma/client'
+
+const db = new PrismaClient()
 
 async function main() {
   // 创建 mock 用户

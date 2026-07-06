@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import type { SyncLogEntry, V2Order, V2OrderListResponse, V2ValidateSkuResponse } from '@/types'
 import { db } from '@/lib/db'
 
-const V2_BASE_URL = process.env.V2_BASE_URL ?? 'http://localhost:3000'
+const V2_BASE_URL = process.env.V2_BASE_URL ?? 'http://127.0.0.1:3000'
 const V3_API_KEY = process.env.V3_API_KEY ?? ''
 const REQUEST_TIMEOUT_MS = 5000
 const MAX_RETRIES = 2
@@ -147,8 +147,8 @@ export class V2Client {
     const res = await this.request<V2ValidateSkuResponse>(
       'v3.orders.validate-sku',
       'POST',
-      '/api/v3/orders/validate-sku',
-      { externalCode, skuCode },
+      `/api/v3/orders/${encodeURIComponent(externalCode)}/validate-sku`,
+      { skuCode },
       undefined,
       options,
     )
